@@ -1,0 +1,22 @@
+# 環境設定（含 API 金鑰，絕對不能上傳）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Whisper 模型快取
+*.bin
+models/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+desktop.ini

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\ClaudeCode\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table)",
+      "PowerShell(Get-Item \"D:\\\\ClaudeCode\" | Select-Object FullName, @{Name=\"ItemCount\";Expression={\\(Get-ChildItem -Path $_.FullName -Recurse -Force | Measure-Object\\).Count}})",
+      "Bash(pip install *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
