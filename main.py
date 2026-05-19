@@ -6,6 +6,7 @@ AI 語音輸入工具
 import sys
 import threading
 import time
+import tkinter as tk
 
 import keyboard
 import pyperclip
@@ -17,6 +18,7 @@ from config import config
 from recorder import AudioRecorder
 from transcriber import Transcriber
 from polisher import TextPolisher
+from overlay import RecordingOverlay
 
 
 class VoiceInputApp:
@@ -24,21 +26,24 @@ class VoiceInputApp:
     STATUS_RECORDING = "recording"
     STATUS_PROCESSING = "processing"
 
-    # 系統匣圖示顏色對應各狀態
     _STATUS_COLOR = {
-        STATUS_IDLE: (80, 180, 80),       # 綠色：待機
-        STATUS_RECORDING: (220, 60, 60),  # 紅色：錄音中
-        STATUS_PROCESSING: (60, 130, 220), # 藍色：處理中
+        STATUS_IDLE:       (80, 180, 80),    # 綠色：待機
+        STATUS_RECORDING:  (220, 60, 60),    # 紅色：錄音中
+        STATUS_PROCESSING: (60, 130, 220),   # 藍色：處理中
     }
 
     def __init__(self):
-        self.recorder = AudioRecorder(sample_rate=config.sample_rate)
+        self.recorder  = AudioRecorder(sample_rate=config.sample_rate)
         self.transcriber = Transcriber()
-        self.polisher = TextPolisher() if config.polish_enabled else None
+        self.polisher  = TextPolisher() if config.polish_enabled else None
 
-        self._status = self.STATUS_IDLE
+        self._status      = self.STATUS_IDLE
         self._status_lock = threading.Lock()
         self._icon: Icon | None = None
+
+        # tkinter 主迴圈（用於 overlay）
+        self._tk_root: tk.Tk | None = None
+        self._overlay: RecordingOverlay | None = None
 
     # ── 狀態管理 ────────────────────────────────────────────────
 
@@ -52,7 +57,18 @@ class VoiceInputApp:
         with self._status_lock:
             self._status = value
         self._refresh_icon(value)
+        self._update_overlay(value)
         print(f"[狀態] {value}")
+
+    def _update_overlay(self, value: str):
+        if self._overlay is None:
+            return
+        if value == self.STATUS_RECORDING:
+            self._overlay.show("recording")
+        elif value == self.STATUS_PROCESSING:
+            self._overlay.show("processing")
+        elif value == self.STATUS_IDLE:
+            self._overlay.hide()
 
     # ── 錄音流程 ────────────────────────────────────────────────
 
@@ -87,7 +103,10 @@ class VoiceInputApp:
             print(f"[辨識結果] {text}")
 
             if self.polisher:
-                print("[Claude] 潤飾中...")
+                # 切換 overlay 為「潤飾中」
+                if self._overlay:
+                    self._overlay.show("polishing")
+                print("[Gemini] 潤飾中...")
                 text = self.polisher.polish(text)
                 print(f"[潤飾結果] {text}")
 
@@ -106,11 +125,10 @@ class VoiceInputApp:
     # ── 系統匣 UI ───────────────────────────────────────────────
 
     def _make_icon_image(self, status: str) -> Image.Image:
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        img  = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
         color = self._STATUS_COLOR.get(status, (128, 128, 128))
         draw.ellipse([8, 8, 56, 56], fill=color)
-        # 麥克風圖案（簡單矩形）
         draw.rectangle([26, 18, 38, 38], fill=(255, 255, 255))
         draw.arc([22, 32, 42, 48], start=0, end=180, fill=(255, 255, 255), width=3)
         draw.line([32, 48, 32, 54], fill=(255, 255, 255), width=3)
@@ -121,8 +139,8 @@ class VoiceInputApp:
             self._icon.icon = self._make_icon_image(status)
 
     def _toggle_polish(self, icon, item):
-        if not config.anthropic_api_key:
-            print("[提示] 未設定 ANTHROPIC_API_KEY，無法啟用潤飾")
+        if not config.gemini_api_key:
+            print("[提示] 未設定 GEMINI_API_KEY，無法啟用潤飾")
             return
         config.use_polish = not config.use_polish
         self.polisher = TextPolisher() if config.polish_enabled else None
@@ -147,11 +165,14 @@ class VoiceInputApp:
         keyboard.unhook_all()
         if self._icon:
             self._icon.stop()
+        if self._overlay:
+            self._overlay.destroy()
+        if self._tk_root:
+            self._tk_root.after(0, self._tk_root.quit)
 
     # ── 啟動 ────────────────────────────────────────────────────
 
     def run(self):
-        # 註冊熱鍵（push-to-talk）
         keyboard.on_press_key(config.hotkey, lambda _: self.on_hotkey_press())
         keyboard.on_release_key(config.hotkey, lambda _: self.on_hotkey_release())
 
@@ -162,16 +183,23 @@ class VoiceInputApp:
         print(f"  AI 潤飾：{polish_status}")
         print("按住熱鍵開始錄音，放開後自動辨識並貼上。")
 
+        # 初始化 tkinter（overlay 用）
+        self._tk_root = tk.Tk()
+        self._tk_root.withdraw()   # 隱藏主視窗
+        self._overlay = RecordingOverlay(self._tk_root)
+
+        # 系統匣圖示在背景執行緒跑
         self._icon = Icon(
             name="VoiceInput",
             icon=self._make_icon_image(self.STATUS_IDLE),
             title="AI 語音輸入",
             menu=self._build_menu(),
         )
+        self._icon.run_detached()
+
+        # tkinter mainloop 作為主執行緒事件迴圈
         try:
-            self._icon.run_detached()
-            print("[系統匣] 圖示已建立，按 Ctrl+C 結束程式")
-            keyboard.wait()
+            self._tk_root.mainloop()
         except KeyboardInterrupt:
             self._quit()
 
