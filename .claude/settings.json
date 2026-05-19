@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "financial-analysis": {
+      "command": "node",
+      "args": ["/home/user/ai-voice-input/mcp-servers/financial-analysis-mcp-server/dist/index.js"],
+      "cwd": "/home/user/ai-voice-input/mcp-servers/financial-analysis-mcp-server"
+    }
+  }
+}
