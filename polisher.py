@@ -1,4 +1,5 @@
-import anthropic
+from google import genai
+from google.genai import types
 
 from config import config
 
@@ -10,13 +11,18 @@ _SYSTEM_PROMPT = """你是一個語音辨識後處理助手。
 
 class TextPolisher:
     def __init__(self):
-        self._client = anthropic.Anthropic(api_key=config.anthropic_api_key)
+        self._client = genai.Client(api_key=config.gemini_api_key)
 
     def polish(self, text: str) -> str:
-        message = self._client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1024,
-            system=_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": text}],
-        )
-        return message.content[0].text.strip()
+        try:
+            response = self._client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=text,
+                config=types.GenerateContentConfig(
+                    system_instruction=_SYSTEM_PROMPT,
+                ),
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"[潤飾跳過] {e.__class__.__name__}: {e}")
+            return text  # 失敗時回傳原始文字

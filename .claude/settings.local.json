@@ -7,7 +7,16 @@
       "PowerShell(Get-Item \"D:\\\\ClaudeCode\" | Select-Object FullName, @{Name=\"ItemCount\";Expression={\\(Get-ChildItem -Path $_.FullName -Recurse -Force | Measure-Object\\).Count}})",
       "Bash(pip install *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(gh auth *)",
+      "PowerShell(gh auth status 2>&1)",
+      "Bash(Get-Content \"C:\\\\Users\\\\MARVIN~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--ClaudeCode\\\\38a3ddd0-67b0-4757-af4d-2214b6fb696d\\\\tasks\\\\biuhxij8i.output\" -Wait)",
+      "Bash(Select-String -Pattern \".\")",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"User\"\\); gh --version)",
+      "PowerShell($ghPath = \\(Get-ChildItem \"C:\\\\Program Files\\\\GitHub CLI\\\\\" -Filter \"gh.exe\" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1\\).FullName; if \\(-not $ghPath\\) { $ghPath = \\(Get-ChildItem \"$env:LOCALAPPDATA\\\\Programs\\\\GitHub CLI\\\\\" -Filter \"gh.exe\" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1\\).FullName }; Write-Output $ghPath)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://github.com/cli/cli/releases/download/v2.62.0/gh_2.62.0_windows_amd64.msi\" -OutFile \"$env:TEMP\\\\gh_setup.msi\" -UseBasicParsing; Write-Output \"下載完成\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\GitHub CLI\"; gh --version)",
+      "PowerShell(Expand-Archive -Path \"$env:TEMP\\\\gh.zip\" -DestinationPath \"C:\\\\gh-cli\" -Force; $ghExe = Get-ChildItem \"C:\\\\gh-cli\" -Filter \"gh.exe\" -Recurse | Select-Object -First 1 -ExpandProperty FullName; Write-Output \"gh.exe 位置: $ghExe\"; & $ghExe --version)"
     ]
   }
 }

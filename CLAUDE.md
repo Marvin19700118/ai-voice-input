@@ -16,7 +16,7 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-`.env` 必填項目：`ANTHROPIC_API_KEY`（AI 潤飾用，可留空則跳過潤飾）
+`.env` 必填項目：`GEMINI_API_KEY`（AI 潤飾用，可留空則跳過潤飾）
 
 ## 啟動
 
@@ -40,7 +40,7 @@ main.py          # 入口：系統匣 UI、熱鍵事件、串接各模組
 config.py        # 從 .env 讀取設定，提供全域 config 物件
 recorder.py      # sounddevice 錄音，stop() 回傳 numpy float32 陣列
 transcriber.py   # faster-whisper 延遲載入模型，transcribe() 回傳字串
-polisher.py      # Claude API (claude-haiku-4-5) 潤飾文字
+polisher.py      # Google Gemini API (gemini-1.5-flash) 潤飾文字
 ```
 
 **資料流**：`hotkey press → recorder.start()` → `hotkey release → recorder.stop() → transcriber.transcribe() → polisher.polish() → pyperclip + pyautogui paste`
@@ -53,4 +53,5 @@ polisher.py      # Claude API (claude-haiku-4-5) 潤飾文字
 | `WHISPER_DEVICE` | `auto` | `auto/cpu/cuda` |
 | `WHISPER_LANGUAGE` | 空（自動） | `zh/en/ja` 等 |
 | `HOTKEY` | `f4` | 任何 keyboard 套件支援的按鍵 |
+| `GEMINI_API_KEY` | 空 | Google AI Studio 取得的 API 金鑰 |
 | `USE_POLISH` | `true` | 設為 `false` 停用 AI 潤飾 |

@@ -168,7 +168,12 @@ class VoiceInputApp:
             title="AI 語音輸入",
             menu=self._build_menu(),
         )
-        self._icon.run()
+        try:
+            self._icon.run_detached()
+            print("[系統匣] 圖示已建立，按 Ctrl+C 結束程式")
+            keyboard.wait()
+        except KeyboardInterrupt:
+            self._quit()
 
 
 if __name__ == "__main__":
