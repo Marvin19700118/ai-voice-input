@@ -26,6 +26,19 @@ python main.py
 
 首次執行會自動下載 Whisper 模型（`base` 約 150MB）。
 
+## 開機自動啟動
+
+執行一次即可永久設定：
+
+```powershell
+# 右鍵 → 以 PowerShell 執行，或在終端機輸入：
+.\setup_autostart.ps1
+```
+
+腳本會將捷徑放入 `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`，使用 `pythonw.exe` 背景執行（無黑色視窗）。
+
+手動移除自動啟動：刪除 `%APPDATA%\...\Startup\AI語音輸入.lnk` 即可。
+
 ## 使用方式
 
 - 按住 **F4**（可在 `.env` 的 `HOTKEY` 更改）錄音
@@ -40,7 +53,8 @@ main.py          # 入口：系統匣 UI、熱鍵事件、串接各模組
 config.py        # 從 .env 讀取設定，提供全域 config 物件
 recorder.py      # sounddevice 錄音，stop() 回傳 numpy float32 陣列
 transcriber.py   # faster-whisper 延遲載入模型，transcribe() 回傳字串
-polisher.py      # Google Gemini API (gemini-1.5-flash) 潤飾文字
+polisher.py      # Google Gemini API (gemini-2.5-flash) 潤飾文字
+setup_autostart.ps1  # 一鍵設定 Windows 開機自動啟動
 ```
 
 **資料流**：`hotkey press → recorder.start()` → `hotkey release → recorder.stop() → transcriber.transcribe() → polisher.polish() → pyperclip + pyautogui paste`
